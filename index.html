@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>NFC Bag Builder</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>NFC Bag Builder - Fabric Textures</title>
   <style>
     body {
       font-family: sans-serif;
@@ -16,28 +16,40 @@
     }
     #bag {
       position: relative;
-      width: 300px;
+      width: 320px;
       height: 400px;
       margin: 20px auto;
-      background: #ddd;
-      border-radius: 20px;
     }
-    .part {
-      position: absolute;
-      width: 50%;
-      height: 50%;
-      background-size: cover;
-      opacity: 0.9;
+
+    svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+      margin: 0 auto;
     }
-    #part1 { top: 0; left: 0; }
-    #part2 { top: 0; left: 50%; }
-    #part3 { top: 50%; left: 0; }
-    #part4 { top: 50%; left: 50%; }
+
+    .fabric-shape {
+      stroke: #444;
+      stroke-width: 2;
+      cursor: pointer;
+      transition: fill 0.3s;
+    }
+
+    .fabric-label {
+      pointer-events: none;
+      font-size: 14px;
+      font-weight: bold;
+      fill: #222;
+      text-anchor: middle;
+      user-select: none;
+      filter: drop-shadow(0 0 1px white);
+    }
 
     button {
       padding: 10px 20px;
       margin: 5px;
       font-size: 14px;
+      cursor: pointer;
     }
 
     #qr {
@@ -50,38 +62,95 @@
   </style>
 </head>
 <body>
-  <h1>Bag Builder</h1>
+  <h1>NFC Bag Builder - Fabric Textures</h1>
   <div id="bag">
-    <div class="part" id="part1"></div>
-    <div class="part" id="part2"></div>
-    <div class="part" id="part3"></div>
-    <div class="part" id="part4"></div>
+    <svg viewBox="0 0 320 400" xmlns="http://www.w3.org/2000/svg" aria-label="Bag parts">
+
+      <defs>
+        <pattern id="pattern-juta" patternUnits="userSpaceOnUse" width="100" height="100">
+          <image href="https://cdn.pixabay.com/photo/2017/08/08/06/50/burlap-2609592_1280.jpg" x="0" y="0" width="100" height="100" />
+        </pattern>
+        <pattern id="pattern-lino" patternUnits="userSpaceOnUse" width="100" height="100">
+          <image href="https://cdn.pixabay.com/photo/2017/03/09/12/52/linen-2127477_1280.jpg" x="0" y="0" width="100" height="100" />
+        </pattern>
+        <pattern id="pattern-wool" patternUnits="userSpaceOnUse" width="100" height="100">
+          <image href="https://cdn.pixabay.com/photo/2016/02/21/17/52/wool-1212951_1280.jpg" x="0" y="0" width="100" height="100" />
+        </pattern>
+        <pattern id="pattern-leather" patternUnits="userSpaceOnUse" width="100" height="100">
+          <image href="https://cdn.pixabay.com/photo/2017/07/20/14/17/leather-2529266_1280.jpg" x="0" y="0" width="100" height="100" />
+        </pattern>
+      </defs>
+
+      <path id="part1" class="fabric-shape" d="M20 20 L150 30 L140 190 L30 160 Z" fill="#eee" />
+      <text id="label1" class="fabric-label" x="85" y="110">Part 1</text>
+
+      <path id="part2" class="fabric-shape" d="M150 30 L300 20 L290 180 L140 190 Z" fill="#eee" />
+      <text id="label2" class="fabric-label" x="220" y="110">Part 2</text>
+
+      <path id="part3" class="fabric-shape" d="M30 160 L140 190 L110 380 L20 350 Z" fill="#eee" />
+      <text id="label3" class="fabric-label" x="70" y="270">Part 3</text>
+
+      <path id="part4" class="fabric-shape" d="M140 190 L290 180 L300 370 L110 380 Z" fill="#eee" />
+      <text id="label4" class="fabric-label" x="210" y="280">Part 4</text>
+    </svg>
   </div>
 
-  <p>Simulate scanning fabric (or connect to NFC later):</p>
+  <p>Simulate scanning fabrics in order:</p>
   <div>
-    <button onclick="setFabric(1, 'red')">Scan Red</button>
-    <button onclick="setFabric(2, 'blue')">Scan Blue</button>
-    <button onclick="setFabric(3, 'green')">Scan Green</button>
-    <button onclick="setFabric(4, 'yellow')">Scan Yellow</button>
+    <button onclick="scanFabric('juta')">Scan Juta</button>
+    <button onclick="scanFabric('lino')">Scan Lino</button>
+    <button onclick="scanFabric('wool')">Scan Wool</button>
+    <button onclick="scanFabric('leather')">Scan Leather</button>
   </div>
 
   <button onclick="saveDesign()">Save My Bag</button>
+  <button onclick="resetDesign()">Reset</button>
+
   <div id="qr"></div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
   <script>
-    const fabrics = {};
+    const parts = ['part1', 'part2', 'part3', 'part4'];
+    const scannedFabrics = [];
 
-    function setFabric(part, color) {
-      document.getElementById(`part${part}`).style.background = color;
-      fabrics[`part${part}`] = color;
+    const fabricStyles = {
+      juta: { fill: 'url(#pattern-juta)', labelColor: '#5a4529' },
+      lino: { fill: 'url(#pattern-lino)', labelColor: '#6e645a' },
+      wool: { fill: 'url(#pattern-wool)', labelColor: '#5b5b5b' },
+      leather: { fill: 'url(#pattern-leather)', labelColor: '#e6d3c1' }
+    };
+
+    function scanFabric(name) {
+      if (scannedFabrics.length >= 4) {
+        alert('All four parts already assigned. Reset to start over.');
+        return;
+      }
+      scannedFabrics.push(name);
+      const partId = parts[scannedFabrics.length - 1];
+      const shape = document.getElementById(partId);
+      const label = document.getElementById('label' + partId.slice(-1));
+
+      if (fabricStyles[name]) {
+        shape.setAttribute('fill', fabricStyles[name].fill);
+        label.textContent = name.charAt(0).toUpperCase() + name.slice(1);
+        label.setAttribute('fill', fabricStyles[name].labelColor);
+      } else {
+        shape.setAttribute('fill', '#ccc');
+        label.textContent = name;
+        label.setAttribute('fill', '#000');
+      }
     }
 
     function saveDesign() {
-      const query = new URLSearchParams(fabrics).toString();
+      if (scannedFabrics.length === 0) {
+        alert('Scan at least one fabric before saving!');
+        return;
+      }
+      const query = scannedFabrics
+        .map((fab, i) => `part${i + 1}=${encodeURIComponent(fab)}`)
+        .join('&');
       const url = `${window.location.origin}${window.location.pathname}?${query}`;
-      localStorage.setItem('savedBag', JSON.stringify(fabrics));
+      localStorage.setItem('savedBag', JSON.stringify(scannedFabrics));
 
       const qr = new QRious({
         element: document.createElement('canvas'),
@@ -90,18 +159,32 @@
       });
 
       const qrDiv = document.getElementById('qr');
-      qrDiv.innerHTML = "<p>Scan or share this code to revisit:</p>";
+      qrDiv.innerHTML = '<p>Scan or share this code to revisit your design:</p>';
       qrDiv.appendChild(qr.element);
     }
 
     function loadFromURL() {
       const params = new URLSearchParams(window.location.search);
+      scannedFabrics.length = 0;
       for (let i = 1; i <= 4; i++) {
-        const color = params.get(`part${i}`);
-        if (color) {
-          setFabric(i, color);
+        const fabric = params.get(`part${i}`);
+        if (fabric) {
+          scanFabric(fabric);
         }
       }
+    }
+
+    function resetDesign() {
+      scannedFabrics.length = 0;
+      parts.forEach((partId, index) => {
+        const shape = document.getElementById(partId);
+        const label = document.getElementById('label' + (index + 1));
+        shape.setAttribute('fill', '#eee');
+        label.textContent = `Part ${index + 1}`;
+        label.setAttribute('fill', '#222');
+      });
+      document.getElementById('qr').innerHTML = '';
+      localStorage.removeItem('savedBag');
     }
 
     loadFromURL();
